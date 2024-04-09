@@ -42,12 +42,11 @@ class PoorlyDrawnLines : HttpSource() {
     private val apiHeaders: Headers by lazy { apiHeadersBuilder().build() }
 
     override fun headersBuilder(): Headers.Builder = Headers.Builder()
-        .add("User-Agent", USER_AGENT)
         .add("Origin", baseUrl)
         .add("Referer", baseUrl)
 
     private fun apiHeadersBuilder(): Headers.Builder = headersBuilder()
-        .add("Accept", ACCEPT_JSON)
+        .add("Accept", "application/json")
 
     private fun createManga(): SManga {
         return SManga.create().apply {
@@ -131,7 +130,7 @@ class PoorlyDrawnLines : HttpSource() {
 
     private fun chapterFromObject(obj: PoorlyDrawnLinesChapterDto): SChapter = SChapter.create().apply {
         name = Parser.unescapeEntities(obj.title.rendered, false)
-        date_upload = obj.date.toDate()
+        date_upload = obj.date_gmt.toDate()
         setUrlWithoutDomain(obj.link)
     }
 
@@ -144,11 +143,11 @@ class PoorlyDrawnLines : HttpSource() {
     override fun pageListParse(response: Response): List<Page> = throw UnsupportedOperationException("Not used")
 
     override fun imageUrlParse(response: Response): String {
-        return response.asJsoup().select("div.content.comic div.post img").attr("abs:src")
+        return response.asJsoup().selectFirst(".comic-container .wp-block-image img")!!.absUrl("data-src")
     }
 
     private inline fun <reified T> Response.parseAs(): T = use {
-        json.decodeFromString(it.body.string().orEmpty())
+        json.decodeFromString(it.body.string())
     }
 
     private fun String.toDate(): Long {
@@ -157,9 +156,6 @@ class PoorlyDrawnLines : HttpSource() {
     }
 
     companion object {
-        private const val ACCEPT_JSON = "application/json"
-        private val USER_AGENT = "Tachiyomi " + System.getProperty("http.agent")
-
         private const val API_BASE_PATH = "wp-json/wp/v2"
         private const val CHAPTER_POST_CATEGORY = 3
         private const val CHAPTERS_PER_PAGE = 100

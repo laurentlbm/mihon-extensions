@@ -10,7 +10,7 @@ data class PoorlyDrawnLinesContentDto(
 
 @Serializable
 data class PoorlyDrawnLinesChapterDto(
-    @SerialName("date_gmt") val date: String = "",
+    @SerialName("date_gmt") val date_gmt: String = "",
     @SerialName("title") val title: PoorlyDrawnLinesContentDto,
     @SerialName("link") val link: String = "",
 )

@@ -10,6 +10,12 @@ assert extName.chars().max().asInt < 0x180 : "Extension name should be romanized
 
 Project theme = ext.has("themePkg") ? project(":lib-multisrc:$themePkg") : null
 
+def localPropertiesFile = rootProject.file("local.properties");
+def localProperties = new Properties()
+if (localPropertiesFile.exists()) {
+    localProperties.load(new FileInputStream(localPropertiesFile))
+}
+
 android {
     compileSdk AndroidConfig.compileSdk
 
@@ -53,9 +59,9 @@ android {
     signingConfigs {
         release {
             storeFile rootProject.file("signingkey.jks")
-            storePassword System.getenv("KEY_STORE_PASSWORD")
-            keyAlias System.getenv("ALIAS")
-            keyPassword System.getenv("KEY_PASSWORD")
+            storePassword localProperties.getProperty("signing.storePassword") ?: System.getenv("KEY_STORE_PASSWORD")
+            keyAlias localProperties.getProperty("signing.keyAlias") ?: System.getenv("ALIAS")
+            keyPassword localProperties.getProperty("signing.keyPassword") ?: System.getenv("KEY_PASSWORD")
         }
     }
 
@@ -71,8 +77,6 @@ android {
     }
 
     buildFeatures {
-        resValues false
-        shaders false
         buildConfig true
     }
 
@@ -89,14 +93,10 @@ android {
     kotlinter {
         experimentalRules = true
         disabledRules = [
-            "experimental:argument-list-wrapping", // Doesn't play well with Android Studio
-            "experimental:comment-wrapping",
+                "experimental:argument-list-wrapping", // Doesn't play well with Android Studio
+                "experimental:comment-wrapping",
         ]
     }
-}
-
-repositories {
-    mavenCentral()
 }
 
 dependencies {
